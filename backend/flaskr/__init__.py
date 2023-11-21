@@ -144,7 +144,7 @@ def create_app(test_config=None):
         new_category = body.get('category')
         new_difficulty = body.get('difficulty')
 
-        if (body, new_question, new_answer, new_category, new_difficulty) == None:
+        if any(item is None for item in (body, new_question, new_answer, new_category, new_difficulty)):
             abort(422)
 
         try:
@@ -156,9 +156,6 @@ def create_app(test_config=None):
                 )
 
             question.insert()
-
-            tot_questions = Question.query.all()
-            current_questions = paginate_questions(request, tot_questions)
 
             return jsonify({'success': True})
         except:
@@ -237,9 +234,11 @@ def create_app(test_config=None):
             previous_questions = body.get('previous_questions')
             category_id = quiz_category['id']
 
+            if category_id is None:
+                abort(422)
+
             if category_id == 0:
-                questions = Question.query.filter(Question.id.notin_(previous_questions), 
-                Question.category == category_id).all()
+                questions = Question.query.filter(Question.id.notin_(previous_questions)).all()
             else:
                 questions = Question.query.filter(Question.id.notin_(previous_questions), 
                 Question.category == category_id).all()
